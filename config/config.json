@@ -1,0 +1,13 @@
+{
+    "development": {
+      "db": {
+        "username": "",
+        "password": "",
+        "database": "",
+        "host": "",
+        "dialect": ""
+      }
+    }
+
+  }
+  

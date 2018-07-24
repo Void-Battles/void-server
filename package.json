@@ -10,9 +10,8 @@
     "dotenv": "^5.0.0",
     "express": "^4.16.2",
     "jsonwebtoken": "^8.2.0",
-    "massive": "^4.7.1",
-    "pg": "^7.4.1",
-    "r": "0.0.5"
+    "pg": "^7.4.3",
+    "sequelize": "^4.38.0"
   },
   "scripts": {
     "start": "nodemon server.js"

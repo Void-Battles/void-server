@@ -2,10 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors')
-const massive = require("massive");
 const jwt = require('jsonwebtoken')
-const loginCtrl = require('./controllers/loginCtrl')
-
+const user = require('./controllers/users/userMethods');
+const authentication = require('./authentication/authentication');
 const app = express();
 app.use(bodyParser.json())
 app.use(cors())
@@ -14,10 +13,10 @@ app.use(cors())
 
 
 
-app.post('/register_user', loginCtrl.register)
+app.post('/register_user', user.register)
 
-app.get('/login_user/:vb_username/:password', loginCtrl.login)
-app.get('/authenticateAuthToken/:token', loginCtrl.authenticateToken)
+app.get('/login_user/:vb_username/:password', user.login)
+app.get('/authenticateAuthToken/:token', authentication.authenticateToken)
 
 
 
