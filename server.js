@@ -21,22 +21,30 @@ function generateUserId() {
   return `vb_${Math.random().toString(36).substr(2, 10)}`
 }
 
-app.post('/register_user', (req, res) => {
-  const { vb_username, steam_id, email, password } = req.body
-  
+function userAccount(new_user) {
+  let user = JSON.parse(JSON.stringify(new_user))
+  delete user.password
+  delete user._id
+  delete user.__v
+  return user
+}
+
+function selectProfilePic() {
+  let pictures = ['bill', 'feng', 'jake', 'kate', 'laurie', 'meg']
+  return pictures[Math.floor(Math.random() * pictures.length)]
+}
+
+app.post('/register_user', (req, res) => { 
   let new_user = new vb_users({
     _id: generateUserId(),
-    vb_username: vb_username,
-    password: password,
-    email: email,
-    steam_id: steam_id,
+    ...req.body,
     team_id: null,
-    profile_pic: 'MEG'
+    profile_pic: selectProfilePic()
   })
 
   new_user.save((err) => {
     if (err) console.log(err)
-    else return res.status(200).send(new_user)
+    else return res.status(200).send(userAccount(new_user))
   })
   
 })
@@ -44,11 +52,21 @@ app.post('/register_user', (req, res) => {
 app.get('/vb-profile/:id', (req, res) => {
   const { id } = req.params
 
-  vb_users.findById(id).exec((response) => {
-    console.log(response)
+  vb_users.findById(id, { _id: false, password: false, __v: false }).exec((err, data) => {
+    if (err) console.log(err)
+    else return res.status(200).send(data)
   })
 
-  console.log('This is the profile id:', id)
+})
+
+app.get('/login/:token', (req, res) => {
+  const { token } = req.params
+  const decodedToken = JSON.parse(new Buffer(token, 'base64').toString('ascii'))
+  vb_users.findOne({ vb_username: decodedToken.vb_username, password: decodedToken.password }).exec((err, data) => {
+    if (err) console.log(err)
+    else return res.status(200).send(userAccount(data))
+  })
+
 })
 
 const port = process.env.PORT
