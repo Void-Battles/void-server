@@ -3,6 +3,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const cors = require('cors')
+const bcrypt = require('bcryptjs')
 mongoose.connect(process.env.DB_URL, { useNewUrlParser: true })
 const vb_users = require('./schemas/users/create-user')
 
@@ -38,6 +39,7 @@ app.post('/register_user', (req, res) => {
   let new_user = new vb_users({
     _id: generateUserId(),
     ...req.body,
+    password: bcrypt.hashSync(req.body.password, process.env.GENSALT),
     team_id: null,
     profile_pic: selectProfilePic()
   })
@@ -62,11 +64,17 @@ app.get('/vb-profile/:id', (req, res) => {
 app.get('/login/:token', (req, res) => {
   const { token } = req.params
   const decodedToken = JSON.parse(new Buffer(token, 'base64').toString('ascii'))
-  vb_users.findOne({ vb_username: decodedToken.vb_username, password: decodedToken.password }).exec((err, data) => {
-    if (err) console.log(err)
-    else return res.status(200).send(userAccount(data))
+  vb_users.findOne({ vb_username: decodedToken.vb_username }).exec((err, data) => {
+    if(data) {
+      if(bcrypt.compareSync(decodedToken.password, data.password)) {
+        res.status(200).send(userAccount(data))
+      } else {
+        res.status(400).send('Password incorrect...')
+      }
+    } else {
+      res.status(400).send('Account Not Found...')
+    }
   })
-
 })
 
 const port = process.env.PORT
