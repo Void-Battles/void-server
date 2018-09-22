@@ -36,14 +36,19 @@ app.post('/register_user', (req, res) => {
   
 })
 
-app.get('/vb-profile/:id', (req, res) => {
-  const { id } = req.params
-
-  vb_users.findById(id, { _id: false, password: false, __v: false }).exec((err, data) => {
+app.get('/vb-profile/:vb_username', (req, res) => {
+  const { vb_username } = req.params
+  vb_users.findOne({vb_username}, { _id: false, password: false, __v: false }).lean().exec((err, data) => {
     if (err) console.log(err)
-    else return res.status(200).send(data)
+    else {
+      if(data.team_id) {
+        vb_teams.findById(data.team_id).lean().exec((error, response) => {
+          data.team_id = response
+          return res.status(200).send(data)
+        })
+      } else return res.status(200).send(data)
+    }
   })
-
 })
 
 app.get('/login/:token', (req, res) => {
