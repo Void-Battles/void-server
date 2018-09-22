@@ -7,8 +7,9 @@ const users = new Schema({
     password: String,
     email: String,
     steam_id: String,
-    team_id: Number || null,
-    profile_pic: String
+    team_id: String || null,
+    profile_pic: String,
+    created_at: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('vb_users', users)
