@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
-const VB_TEAM = require('../schemas/VB_TEAM')
-const VB_USER = require('../schemas/VB_USER')
+const VB_TEAM = require('../schemas/VB_TEAMS')
+const VB_USER = require('../schemas/VB_USERS')
 const MEMBER_PROPERTIES = { vb_username: true, profile_pic: true, _id: false }
 const TEAM_PROPERTIES = { _id: false, __v: false }
 
