@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const users = new Schema({
+const user = new Schema({
     _id: String,
     vb_username: String,
     password: String,
@@ -12,4 +12,4 @@ const users = new Schema({
     created_at: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('vb_users', users)
+module.exports = mongoose.model('vb_users', user)

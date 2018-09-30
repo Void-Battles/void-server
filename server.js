@@ -4,9 +4,10 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const bcrypt = require('bcryptjs')
+const vb_users = require('./schemas/VB_USER')
+const vb_teams = require('./schemas/VB_TEAM')
+const teamController = require('./controllers/vb_teams')
 mongoose.connect(process.env.DB_URL, { useNewUrlParser: true })
-const vb_users = require('./schemas/users/create-user')
-const vb_teams = require('./schemas/team/create-team')
 
 const app = express()
 app.use(bodyParser.json())
@@ -19,6 +20,7 @@ db.once('open', () => {
   console.log("Connected to Void's DBD mongodb instance")
 });
 
+app.use('/api/team', teamController)
 
 app.post('/register_user', (req, res) => { 
   let new_user = new vb_users({
@@ -31,7 +33,10 @@ app.post('/register_user', (req, res) => {
 
   new_user.save((err) => {
     if (err) console.log(err)
-    else return res.status(200).send(userAccount(new_user))
+    else {
+      let user = userAccount(new_user)
+      return res.status(200).send(user)
+    }
   })
   
 })
@@ -75,28 +80,6 @@ app.get('/login/:token', (req, res) => {
 
 })
 
-app.post('/create-team', async (req, res) => {
-  let team_id = generateUserId()
-  const { _id } = await getCaptainId(req.headers['client-secret'], team_id)
-  let new_team = new vb_teams({
-    _id: team_id,
-    captain: _id,
-    ...req.body 
-  })
-
-  new_team.save((err) => {
-    if (err) console.log(err)
-    else return res.status(200).send(new_team)
-  })
-
-})
-
-function getCaptainId(secret, team_id) {
-  const captainId = new Buffer(secret, 'base64').toString('ascii')
-  const updateTeamId = { team_id }
-  return vb_users.findOneAndUpdate({ _id: captainId }, updateTeamId, { new: true })
-}
-
 function generateUserId() {
   return `vb_${Math.random().toString(36).substr(2, 10)}`
 }
@@ -114,7 +97,6 @@ function selectProfilePic() {
   let pictures = ['bill', 'feng', 'jake', 'kate', 'laurie', 'meg']
   return pictures[Math.floor(Math.random() * pictures.length)]
 }
-
 
 const port = process.env.PORT
 app.listen(port, () => console.log(`Reporting for duty on port ${port}`))
