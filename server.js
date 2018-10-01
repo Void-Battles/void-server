@@ -61,11 +61,17 @@ app.get('/vb-profile/:vb_username', (req, res) => {
 
 const getAllUserInfo = async (_id, user) => {
   // Handle Invites
-  let userInvites = await TEAM_INVITES.find({user_id: _id}, { team_id: true, _id: false })
-  userInvites = userInvites.map(team => team.team_id)
-  if(!userInvites) user.pending_invites = null
-  const pendingTeams = await vb_teams.find({_id: userInvites}, { team_pic: true, team_name: true })
-  user.pending_invites = pendingTeams
+  let userInvites = await TEAM_INVITES.find({user_id: _id}, { team_id: true  })
+  const filteredUserInvites = userInvites.map(team => team.team_id)
+  if(!filteredUserInvites) user.pending_invites = null
+  const pendingTeams = await vb_teams.find( { _id: filteredUserInvites }, { team_pic: true, team_name: true, _id: true })
+  const userInvitesToSend = userInvites.map(invite => {
+    return {
+      url_id: invite._id,
+      team_info: pendingTeams.filter(team => team._id === invite.team_id)
+    }
+  })
+  user.pending_invites = userInvitesToSend
 
 
   // Handle Team

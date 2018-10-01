@@ -5,7 +5,7 @@ const team = new Schema({
     _id: String,
     team_name: String,
     captain: String,
-    members: [Number] || null,
+    members: [String] || null,
     team_pic: String,
     created_at: { type: Date, default: Date.now }
 })

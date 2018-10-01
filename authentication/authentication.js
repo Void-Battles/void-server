@@ -10,6 +10,7 @@ module.exports = {
             return decoded
           } catch(err) {
             console.log(err)
+            return false
           }
 
     }
