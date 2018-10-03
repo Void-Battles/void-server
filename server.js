@@ -65,14 +65,13 @@ const getAllUserInfo = async (_id, user) => {
   const filteredUserInvites = userInvites.map(team => team.team_id)
   if(!filteredUserInvites) user.pending_invites = null
   const pendingTeams = await vb_teams.find( { _id: filteredUserInvites }, { team_pic: true, team_name: true, _id: true })
-  const userInvitesToSend = userInvites.map(invite => {
+  user.pending_invites = userInvites.map(invite => {
+    const team_info = pendingTeams.filter(team => team._id === invite.team_id)
     return {
-      url_id: invite._id,
-      team_info: pendingTeams.filter(team => team._id === invite.team_id)
+      invite_id: invite._id,
+      team_info: team_info[0]
     }
   })
-  user.pending_invites = userInvitesToSend
-
 
   // Handle Team
   const userTeam = await vb_teams.findById(user.team_id)
