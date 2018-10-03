@@ -41,7 +41,7 @@ router.post('/acceptInvite/:invite_id', async (request, response) => {
     const { decodedID } = request
     const { invite_id } = request.params
     
-    const inviteInfo = await TEAM_INVITES.findById(invite_id).remove()
+    const inviteInfo = await TEAM_INVITES.findById(invite_id)
     if(!inviteInfo) return response.status(400).send('Error')
 
     const { team_id } = inviteInfo
@@ -51,7 +51,7 @@ router.post('/acceptInvite/:invite_id', async (request, response) => {
 
     await VB_TEAMS.findByIdAndUpdate(team_id, { members: teamInfo.members })
     await VB_USERS.findByIdAndUpdate(decodedID, { team_id: team_id })
-    // await TEAM_INVITES.findByIdAndRemove(invite_id)
+    await TEAM_INVITES.findByIdAndRemove(invite_id)
 
     response.status(200).send(invite_id)
 })
