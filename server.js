@@ -9,6 +9,7 @@ const vb_teams = require('./schemas/VB_TEAMS')
 const TEAM_INVITES = require('./schemas/TEAM_INVITES')
 const teamController = require('./controllers/vb_teams')
 const inviteController = require('./controllers/invites')
+const tournamentController = require('./controllers/vb_tournaments')
 mongoose.connect(process.env.DB_URL, { useNewUrlParser: true })
 
 const app = express()
@@ -24,6 +25,7 @@ db.once('open', () => {
 
 app.use('/api/team', teamController)
 app.use('/api/invite', inviteController)
+app.use('/api/tournaments', tournamentController)
 
 app.post('/register_user', (req, res) => { 
   let new_user = new vb_users({
@@ -38,6 +40,7 @@ app.post('/register_user', (req, res) => {
     if (err) console.log(err)
     else {
       let user = userAccount(new_user)
+      user.pending_invites = []
       return res.status(200).send(user)
     }
   })
@@ -47,7 +50,7 @@ app.post('/register_user', (req, res) => {
 app.get('/vb-profile/:vb_username', (req, res) => {
   const { vb_username } = req.params
   vb_users.findOne({vb_username}, { _id: false, password: false, __v: false }).lean().exec((err, data) => {
-    if (err) console.log(err)
+    if (err || !data) return res.status(400).send('User Not Found...')
     else {
       if(data.team_id) {
         vb_teams.findById(data.team_id).lean().exec((error, response) => {
