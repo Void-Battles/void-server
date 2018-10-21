@@ -60,6 +60,19 @@ router.post('/acceptInvite/:invite_id', async (request, response) => {
     await VB_USERS.findByIdAndUpdate(decodedID, { team_id: team_id })
     await TEAM_INVITES.findByIdAndRemove(invite_id)
 
+    const accept_id = generatePendingId()
+
+    const newAcceptInvite = new TEAM_INVITES({
+        _id: accept_id,
+        sender_id: decodedID,
+        // target id
+        user_id: teamInfo.captain,
+        team_id,
+        type: 'dismiss',
+    })
+
+    await newAcceptInvite.save()
+
     response.status(200).send(invite_id)
 })
 
