@@ -1,5 +1,8 @@
 const router = require('express').Router()
 const VB_TOURNAMENT = require('../schemas/VB_TOURNAMENT')
+const VB_TEAMS = require('../schemas/VB_TEAMS')
+const { authenticateToken } = require('../authentication/authentication')
+
 
 router.post('/createTournament', async (request, response) => {
     const tournamentId = generateTournamentId()
@@ -18,6 +21,28 @@ router.post('/createTournament', async (request, response) => {
 
     await newTournament.save()
     return response.status(200).send(newTournament)
+    
+})
+
+const middleware = (request, response, next) => {
+    authenticateToken(request).then(data => {
+        request.decodedID = data
+        next()
+    }).catch(error => response.status(400).send('Please login to perform this action.'))
+}
+
+router.post('/register', middleware, async (request, response) => {
+    const findTeam = await VB_TEAMS.find({ captain: request.decodedID })
+    const { tournament_name } = request.body
+    const tournamentData = await VB_TOURNAMENT.findOne({tournament_name}).lean()
+
+    if (findTeam[0].members.length === 4) {
+        tournamentData.signed_up_teams.push(findTeam[0]._id)
+        await VB_TOURNAMENT.findByIdAndUpdate(tournamentData._id, { signed_up_teams: tournamentData.signed_up_teams }, { new: true }).catch((error) => {
+            return response.status(500).send('Internal Server Error')
+        })
+        return response.status(200).send('Your team has been registered!')
+    } else return response.status(403).send('Team must have at least 4 members in order to play in tournaments.')
     
 })
 

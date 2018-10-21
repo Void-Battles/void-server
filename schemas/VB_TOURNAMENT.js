@@ -7,7 +7,8 @@ const tournament = new Schema({
     killer: String,
     map: String,
     total_signup: Number,
-    signed_up_teams: []
+    signed_up_teams: [],
+    tournament_name: String,
 })
 
 module.exports = mongoose.model('vb_tournaments', tournament)

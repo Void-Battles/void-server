@@ -9,8 +9,7 @@ module.exports = {
             let decoded = new Buffer(token, 'base64').toString('ascii')
             return decoded
           } catch(err) {
-            console.log(err)
-            return false
+            throw Error('You shall not pass.')
           }
 
     }
