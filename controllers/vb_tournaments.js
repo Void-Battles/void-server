@@ -21,11 +21,17 @@ router.post('/createTournament', async (request, response) => {
     
 })
 
-router.get('/findTournament/:id', async (request, response) => {
-    const { id } = request.params
-    if (!id) return response.status(400).send('Missing Tournament Id')
-    const tournamentData = await VB_TOURNAMENT.findById(id, '-__v')
+router.get('/findTournament/:tournament_name', async (request, response) => {
+    const { tournament_name } = request.params
+    if (!tournament_name) return response.status(400).send('Missing Tournament Id')
+    const tournamentData = await VB_TOURNAMENT.findOne({tournament_name}, '-_id')
     return response.status(200).send(tournamentData)
+})
+
+router.get('/getTournaments/:filter', async (request, response) => {
+    const {filter} = request.params
+    const tournaments = await VB_TOURNAMENT.find({status: filter}, '-_id')
+    return response.status(200).send(tournaments)
 })
 
 function generateTournamentId() {
