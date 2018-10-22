@@ -16,7 +16,9 @@ router.post('/createTournament', async (request, response) => {
         killer: killerToPlay,
         map: mapToPlay,
         total_signup: 0,
-        signed_up_teams: []
+        signed_up_teams: [],
+        tournament_name: '',
+        status: 'current'
     })
 
     await newTournament.save()
@@ -32,16 +34,33 @@ const middleware = (request, response, next) => {
 }
 
 router.post('/register', middleware, async (request, response) => {
-    const findTeam = await VB_TEAMS.find({ captain: request.decodedID })
+    const findTeam = await VB_TEAMS.findOne({ captain: request.decodedID }).catch((error) => response.status(500).send('Only Team Leaders can register for tournaments.'))
+    if (!findTeam) return response.status(403).send('Only team captains can register for tournaments.')
+    const { members, _id } = findTeam
     const { tournament_name } = request.body
-    const tournamentData = await VB_TOURNAMENT.findOne({tournament_name}).lean()
+    const tournamentData = await VB_TOURNAMENT.findOne({ tournament_name }).lean()
+    let { signed_up_teams } = tournamentData
 
-    if (findTeam[0].members.length === 4) {
-        tournamentData.signed_up_teams.push(findTeam[0]._id)
-        await VB_TOURNAMENT.findByIdAndUpdate(tournamentData._id, { signed_up_teams: tournamentData.signed_up_teams }, { new: true }).catch((error) => {
+    if (members.length === 4) {
+        let isAlreadyRegistered = false
+
+        signed_up_teams.filter((team_id) => {
+            if (team_id === _id) {
+                isAlreadyRegistered = true
+            }
+        })
+
+        if (isAlreadyRegistered) {
+            const updated_signed_up_teams = signed_up_teams.filter((team_id) => team_id !== _id)
+            await VB_TOURNAMENT.findByIdAndUpdate(tournamentData._id, { signed_up_teams: updated_signed_up_teams })
+            return response.status(200).send({ removed: true })
+        }
+
+        signed_up_teams.push(_id)
+        await VB_TOURNAMENT.findByIdAndUpdate(tournamentData._id, { signed_up_teams: signed_up_teams }, { new: true }).catch((error) => {
             return response.status(500).send('Internal Server Error')
         })
-        return response.status(200).send('Your team has been registered!')
+        return response.status(200).send({ added: true })
     } else return response.status(403).send('Team must have at least 4 members in order to play in tournaments.')
     
 })
@@ -49,13 +68,30 @@ router.post('/register', middleware, async (request, response) => {
 router.get('/findTournament/:tournament_name', async (request, response) => {
     const { tournament_name } = request.params
     if (!tournament_name) return response.status(400).send('Missing Tournament Id')
-    const tournamentData = await VB_TOURNAMENT.findOne({tournament_name}, '-_id')
+    
+    const tournamentData = await VB_TOURNAMENT.findOne({ tournament_name }, '-_id').lean()
+    const signedUpTeams = tournamentData.signed_up_teams
+
+    for(let i = 0; i < signedUpTeams.length; i++) {
+        let teamInfo = await VB_TEAMS.findById(signedUpTeams[i], 'team_name team_pic -_id')
+        signedUpTeams[i] = teamInfo
+    }
     return response.status(200).send(tournamentData)
 })
 
 router.get('/getTournaments/:filter', async (request, response) => {
-    const {filter} = request.params
-    const tournaments = await VB_TOURNAMENT.find({status: filter}, '-_id')
+    const { filter } = request.params
+    const tournaments = await VB_TOURNAMENT.find({ status: filter }, '-_id')
+    
+    for(let i = 0; i < tournaments.length; i++) {
+        const signedUpTeams = tournaments[i].signed_up_teams
+        if(signedUpTeams.length !== 0) {
+            for(let j = 0; j < signedUpTeams.length; j++) {
+                let teamInfo = await VB_TEAMS.findById(signedUpTeams[j], 'team_name -_id')
+                signedUpTeams[j] = teamInfo
+            }
+        }
+    }
     return response.status(200).send(tournaments)
 })
 

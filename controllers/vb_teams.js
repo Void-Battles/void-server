@@ -49,5 +49,9 @@ router.post('/create-team', async (req, res) => {
     return VB_USER.findOneAndUpdate({ _id: captainId }, updateTeamId, { new: true })
   }
 
+  async function kickPlayer(team_name) {
+    const playerRemoved = await VB_TEAM.findOneAndRemove()
+  }
+
 
 module.exports = router
