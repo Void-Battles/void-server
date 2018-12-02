@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const bcrypt = require('bcryptjs')
 const VB_USERS = require("../schemas/VB_TEAMS.js");
 
 router.post("/register_user", (req, res) => {

@@ -101,5 +101,4 @@ async function getInvitesById(_id) {
     })
 }
 
-
 module.exports = router

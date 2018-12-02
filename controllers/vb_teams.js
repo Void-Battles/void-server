@@ -49,6 +49,8 @@ router.post('/create-team', async (req, res) => {
     return VB_USER.findOneAndUpdate({ _id: captainId }, updateTeamId, { new: true })
   }
 
+  // TODO: I guess we started to add functionality for a captain to kick a player
+  // should probably also add the ability for a player to leave a team.
   async function kickPlayer(team_name) {
     const playerRemoved = await VB_TEAM.findOneAndRemove()
   }
