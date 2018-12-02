@@ -76,6 +76,7 @@ router.post('/acceptInvite/:invite_id', async (request, response) => {
     response.status(200).send(invite_id)
 })
 
+// TESTING PR
 router.delete('/denyInvite/:invite_id', async (request, response) => {
     const { invite_id } = request.params
     if (!invite_id) return response.status(400).send('Error')
