@@ -76,6 +76,51 @@ router.get('/findTournament/:tournament_name', async (request, response) => {
         let teamInfo = await VB_TEAMS.findById(signedUpTeams[i], 'team_name team_pic -_id')
         signedUpTeams[i] = teamInfo
     }
+
+    tournamentData.bracket = {
+        round1: [
+            {
+                team1: 'StaticVoid_',
+                team2: 'HQ',
+                winner: 'StaticVoid_'
+            },
+            {
+                team1: 'SKIP',
+                team2: 'ChasesAreFun',
+                winner: 'ChasesAreFun'
+            },
+            {
+                team1: 'AnimeCon',
+                team2: 'Weaboo',
+                winner: 'Weaboo'
+            },
+            {
+                team1: 'SlipnSlap',
+                team2: 'HitDown',
+                winner: 'SlipnSlap'
+            }
+        ],
+        round2: [
+            {
+                team1: 'StaticVoid_',
+                team2: 'ChasesAreFun',
+                winner: 'StaticVoid_'
+            },
+            {
+                team1: 'Weaboo',
+                team2: 'SlipnSlap',
+                winner: 'Weaboo'
+            }
+        ],
+        finalRound: [
+            {
+                team1: 'StaticVoid_',
+                team2: 'Weaboo',
+                winner: 'StaticVoid_',
+            }
+        ]
+    }
+
     return response.status(200).send(tournamentData)
 })
 

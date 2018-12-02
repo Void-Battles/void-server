@@ -10,6 +10,7 @@ const TEAM_INVITES = require('./schemas/TEAM_INVITES')
 const teamController = require('./controllers/vb_teams')
 const inviteController = require('./controllers/invites')
 const tournamentController = require('./controllers/vb_tournaments')
+const userController = require('./controllers/users')
 mongoose.connect(process.env.DB_URL, { useNewUrlParser: true })
 
 const app = express()
@@ -26,26 +27,9 @@ db.once('open', () => {
 app.use('/api/team', teamController)
 app.use('/api/invite', inviteController)
 app.use('/api/tournaments', tournamentController)
+app.use('/api/users', userController)
 
-app.post('/register_user', (req, res) => { 
-  let new_user = new vb_users({
-    _id: generateUserId(),
-    ...req.body,
-    password: bcrypt.hashSync(req.body.password, Number(process.env.GENSALT)),
-    team_id: null,
-    profile_pic: selectProfilePic()
-  })
 
-  new_user.save((err) => {
-    if (err) console.log(err)
-    else {
-      let user = userAccount(new_user)
-      user.pending_invites = []
-      return res.status(200).send(user)
-    }
-  })
-  
-})
 
 app.get('/vb-profile/:vb_username', (req, res) => {
   const { vb_username } = req.params
@@ -102,24 +86,6 @@ app.get('/login/:token', async (req, res) => {
       res.status(400).send('Account Not Found...')
     }
 })
-
-function generateUserId() {
-  return `vb_${Math.random().toString(36).substr(2, 10)}`
-}
-
-function userAccount(new_user) {
-  let user = JSON.parse(JSON.stringify(new_user))
-  user.auth_token = new Buffer(user._id).toString('base64')
-  delete user.password
-  delete user._id
-  delete user.__v
-  return user
-}
-
-function selectProfilePic() {
-  let pictures = ['bill', 'feng', 'jake', 'kate', 'laurie', 'meg']
-  return pictures[Math.floor(Math.random() * pictures.length)]
-}
 
 const port = process.env.PORT
 app.listen(port, () => console.log(`Reporting for duty on port ${port}`))
