@@ -2,6 +2,7 @@ const router = require('express').Router()
 const VB_USERS = require('../schemas/VB_USERS')
 const TEAM_INVITES = require('../schemas/TEAM_INVITES')
 const VB_TEAMS = require('../schemas/VB_TEAMS')
+const bcrypt = require('bcryptjs')
 
 router.get('/:token', async (req, res) => {
     const { token } = req.params
