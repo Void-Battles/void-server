@@ -4,6 +4,29 @@ const VB_TEAMS = require('../schemas/VB_TEAMS')
 const { authenticateToken } = require('../authentication/authentication')
 
 
+const startTournament = async(_id) => {
+    const tournaments = await VB_TOURNAMENT.find({signed_up_teams: {$size: 4}})
+    
+    for(let i = 0; i < tournaments.length; i++) {
+        const { _id, signed_up_teams } = tournaments[i]
+        const teams = await VB_TEAMS.find({_id:signed_up_teams})
+        const bracket = {round1: []}
+
+        
+        bracket.round1 = teams.map(team => team.team_name).reduce(function(result, value, index, array) {
+            if (index % 2 === 0) {
+                const [team1, team2] = array.slice(index, index + 2)
+                result.push({team1,team2})
+            } return result;
+          }, []);
+        tournaments[i].bracket = bracket
+        const didUpdate = await VB_TOURNAMENT.findOneAndUpdate({ _id }, tournaments[i])
+    }
+}
+
+// startTournament()
+
+
 router.post('/createTournament', async (request, response) => {
     const tournamentId = generateTournamentId()
     const survivorsToPlay = generateTournamentSurvivors()
@@ -70,6 +93,7 @@ router.get('/findTournament/:tournament_name', async (request, response) => {
     if (!tournament_name) return response.status(400).send('Missing Tournament Id')
     
     const tournamentData = await VB_TOURNAMENT.findOne({ tournament_name }, '-_id').lean()
+    console.log(tournamentData.bracket.round1)
     const signedUpTeams = tournamentData.signed_up_teams
 
     for(let i = 0; i < signedUpTeams.length; i++) {
@@ -77,49 +101,30 @@ router.get('/findTournament/:tournament_name', async (request, response) => {
         signedUpTeams[i] = teamInfo
     }
 
-    tournamentData.bracket = {
-        round1: [
-            {
-                team1: 'StaticVoid_',
-                team2: 'HQ',
-                winner: 'StaticVoid_'
-            },
-            {
-                team1: 'SKIP',
-                team2: 'ChasesAreFun',
-                winner: 'ChasesAreFun'
-            },
-            {
-                team1: 'AnimeCon',
-                team2: 'Weaboo',
-                winner: 'Weaboo'
-            },
-            {
-                team1: 'SlipnSlap',
-                team2: 'HitDown',
-                winner: 'SlipnSlap'
-            }
-        ],
-        round2: [
-            {
-                team1: 'StaticVoid_',
-                team2: 'ChasesAreFun',
-                winner: 'StaticVoid_'
-            },
-            {
-                team1: 'Weaboo',
-                team2: 'SlipnSlap',
-                winner: 'Weaboo'
-            }
-        ],
-        finalRound: [
-            {
-                team1: 'StaticVoid_',
-                team2: 'Weaboo',
-                winner: 'StaticVoid_',
-            }
-        ]
-    }
+    // tournamentData.bracket = {
+    //     round1:
+    //         [ { team1: 'ChasesAreFun', team2: 'PipPlz' },
+    //           { team1: 'Flatmoon', team2: 'MoriUsMyers' } ],
+    //     // round2: [
+    //     //     {
+    //     //         team1: 'StaticVoid_',
+    //     //         team2: 'ChasesAreFun',
+    //     //         winner: 'StaticVoid_'
+    //     //     },
+    //     //     {
+    //     //         team1: 'Weaboo',
+    //     //         team2: 'SlipnSlap',
+    //     //         winner: 'Weaboo'
+    //     //     }
+    //     // ],
+    //     finalRound: [
+    //         {
+    //             team1: 'StaticVoid_',
+    //             team2: 'Weaboo',
+    //             winner: 'StaticVoid_',
+    //         }
+    //     ]
+    // }
 
     return response.status(200).send(tournamentData)
 })

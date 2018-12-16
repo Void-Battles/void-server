@@ -9,6 +9,7 @@ const tournament = new Schema({
     signed_up_teams: [],
     tournament_name: String,
     status: String,
+    bracket: Object
 })
 
 module.exports = mongoose.model('vb_tournaments', tournament)
